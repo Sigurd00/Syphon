@@ -60,6 +60,23 @@ public:
     }
 
     virtual void displayTransitionTable() const = 0;
+
+    [[nodiscard]] std::set<int> getStates() const {
+        return states;
+    }
+    [[nodiscard]] int getStartState() const {
+        return startState;
+    };
+
+    [[nodiscard]] const std::set<int>& getAcceptState() const {
+        return acceptStates;
+    }
+
+    [[nodiscard]] const std::set<char>& getAlphabet() const{
+        return alphabet;
+    }
+
+
 };
 
 class DFA : public FiniteAutomaton {
@@ -69,20 +86,17 @@ private:
 public:
     DFA() : FiniteAutomaton() {}
 
-    // Add a transition rule
     void addTransition(int fromState, char symbol, int toState) {
-        if (states.find(fromState) == states.end()) {
-            states.insert(fromState);
-        }
-        if (states.find(toState) == states.end()) {
-            states.insert(toState);
-        }
-        if (alphabet.find(symbol) == alphabet.end()) {
-            alphabet.insert(symbol);
-        }
+        states.insert(fromState);
+        states.insert(toState);
+        alphabet.insert(symbol);
         transitionTable[{fromState, symbol}] = toState;
     }
-// Display the transition table
+
+    [[nodiscard]] const std::map<std::pair<int, char>, int> getTransitionTable() const {
+        return transitionTable;
+    }
+
     void displayTransitionTable() const override {
         std::cout << "DFA Transition Table:" << std::endl;
 
@@ -123,9 +137,7 @@ public:
         alphabet.insert(EPSILON);
     }
 
-    // Constructor that builds from a fragment
     explicit NFA(const NFAFragment& fragment) : FiniteAutomaton() {
-        // Add epsilon to the alphabet
         alphabet.insert(EPSILON);
 
         // Copy transitions from fragment
@@ -141,16 +153,14 @@ public:
         startState = fragment.startState;
         acceptStates = fragment.acceptStates;
     }
+    [[nodiscard]] const std::map<std::pair<int, char>, std::set<int>>& getTransitionTable() const {
+        return transitionTable;
+    }
 
-    // Add a transition rule
     void addTransition(int fromState, char symbol, int toState) {
-        if (states.find(fromState) == states.end()) {
-            states.insert(fromState);
-        }
-        if (states.find(toState) == states.end()) {
-            states.insert(toState);
-        }
-        if (symbol != EPSILON && alphabet.find(symbol) == alphabet.end()) {
+        states.insert(fromState);
+        states.insert(toState);
+        if (symbol != EPSILON) {
             alphabet.insert(symbol);
         }
         transitionTable[{fromState, symbol}].insert(toState);
