@@ -1,0 +1,78 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        compiler: [gcc, clang, msvc]
+        exclude:
+          - os: macos-latest
+            compiler: msvc
+          - os: windows-latest
+            compiler: clang
+          - os: ubuntu-latest
+            compiler: msvc
+
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Set up C++
+      uses: actions/setup-cpp@v1
+      with:
+        compiler: ${{ matrix.compiler }}
+
+    - name: Install Google Test (Ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y libgtest-dev cmake
+        cd /usr/src/gtest
+        sudo cmake CMakeLists.txt
+        sudo make
+        sudo cp lib/*.a /usr/lib
+
+    - name: Install Google Test (macOS)
+      if: matrix.os == 'macos-latest'
+      run: |
+        brew install googletest
+        brew link googletest
+
+    - name: Install Google Test (Windows)
+      if: matrix.os == 'windows-latest'
+      uses: microsoft/setup-msbuild@v1.1
+      run: |
+        vcpkg install gtest
+        vcpkg integrate install
+
+    - name: Create Build Directory
+      run: mkdir build && cd build
+
+    - name: Configure CMake (Ubuntu/macOS)
+      if: matrix.os != 'windows-latest'
+      run: |
+        cd build
+        cmake -DCMAKE_BUILD_TYPE=Debug ..
+
+    - name: Configure CMake (Windows)
+      if: matrix.os == 'windows-latest'
+      run: |
+        cd build
+        cmake -G "Visual Studio 17 2022" -A x64 ..
+
+    - name: Build
+      run: |
+        cd build
+        cmake --build . --config Debug
+
+    - name: Run Tests
+      run: |
+        cd build
+        ctest -C Debug --output-on-failure
