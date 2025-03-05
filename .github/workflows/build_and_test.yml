@@ -32,9 +32,10 @@ jobs:
         if: matrix.os == 'ubuntu-latest'
         run: sudo apt update && sudo apt install -y ${{ matrix.compiler }} cmake ninja-build
 
-      - name: Install Compiler (macOS)
+      - name: Install CMake & Ninja (macOS)
         if: matrix.os == 'macos-latest'
-        run: brew install ${{ matrix.compiler }} cmake ninja
+        run: |
+          brew install cmake ninja
 
       # Compiler setup (Windows)
       - name: Setup MSVC (Windows)
