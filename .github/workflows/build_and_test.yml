@@ -45,9 +45,12 @@ jobs:
         brew install googletest
         brew link googletest
 
-    - name: Install Google Test (Windows)
+    - name: Set up MSBuild (Windows)
       if: matrix.os == 'windows-latest'
       uses: microsoft/setup-msbuild@v1.1
+
+    - name: Install Google Test (Windows)
+      if: matrix.os == 'windows-latest'
       run: |
         vcpkg install gtest
         vcpkg integrate install
